@@ -1,0 +1,1198 @@
+================================================================================
+                    SELENIUM PYTHON FILES CODE DOCUMENTATION
+================================================================================
+
+This document contains code from all Python files in the Selenium folder,
+organized with descriptive titles and summaries explaining their functionality.
+
+================================================================================
+1. ACTION CHAINS - HOVER OVER MENU ITEM
+================================================================================
+File: action.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://imcc.mespune.in/")
+
+program_menu = driver.find_element(By.XPATH,"//li[@id='menu-item-4383']")
+
+actions = ActionChains(driver)
+actions.move_to_element(program_menu).perform()
+
+time.sleep(5)
+
+# What's it doing:
+# Browser opens IMCC site.
+# Finds the Program menu item (id="menu-item-4383").
+# Performs hover using move_to_element().
+# Keeps it open for 5 sec so you can see the dropdown.
+
+---
+SUMMARY: This script demonstrates how to perform a hover action on a web element
+using Selenium's ActionChains. It opens the IMCC website, locates the Program menu
+item, and hovers over it to reveal the dropdown menu. The script uses move_to_element()
+method to simulate mouse hover behavior.
+
+================================================================================
+2. ACTION CHAINS - DRAG AND DROP LOGO
+================================================================================
+File: action1.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+driver = webdriver.Chrome()
+driver.set_page_load_timeout(20)
+driver.maximize_window()
+
+driver.get("https://imcc.mespune.in/")
+wait = WebDriverWait(driver, 15)
+actions = ActionChains(driver)
+
+header = wait.until(
+    EC.presence_of_element_located((By.XPATH,"//h2[contains(normalize-space(.),'Prominent Recruiters')]"))
+)
+logos = wait.until(
+    EC.presence_of_all_elements_located((By.XPATH,"//h2[contains(normalize-space(.),'Prominent Recruiters')]/following::img"))
+)
+print("Total logos found: ", len(logos))
+
+if len(logos)>=3:
+    third_logo = wait.until(EC.visibility_of(logos[2])) #index 2 => 3rd logo
+    time.sleep(2)
+    actions.click_and_hold(third_logo).move_by_offset(-100,0).release().perform()
+    #alternatively:actions.drag_and_drop_by_offset(thrid_logo,-100,0).perform()
+
+    print("Dragged 3rd logo 100px to the left.")
+    time.sleep(2)
+else:
+    print("Less than 3 logos found")
+driver.quit()
+
+---
+SUMMARY: This script demonstrates drag and drop functionality using ActionChains.
+It navigates to the IMCC website, waits for the "Prominent Recruiters" section,
+counts the logo images, and then drags the third logo 100 pixels to the left.
+The script uses explicit waits to ensure elements are loaded before interaction.
+
+================================================================================
+3. ACTION CHAINS - DRAG AND DROP LOGO (CORRECTED VERSION)
+================================================================================
+File: action1c.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+# Launch browser
+driver = webdriver.Chrome()
+driver.set_page_load_timeout(20)
+driver.maximize_window()
+
+driver.get("https://imcc.mespune.in/")
+wait = WebDriverWait(driver, 15)
+actions = ActionChains(driver)
+
+# Locate "Prominent Recruiters" header
+header = wait.until(
+    EC.presence_of_element_located(
+        (By.XPATH, "//h2[contains(normalize-space(.),'Prominent Recruiters')]")
+    )
+)
+
+# Count logos
+logos = driver.find_elements(
+    By.XPATH, "//h2[contains(normalize-space(.),'Prominent Recruiters')]/following::img"
+)
+print("Total logos found:", len(logos))
+
+if len(logos) >= 3:
+    # Always re-fetch the 3rd logo fresh (avoids stale element reference)
+    third_logo = wait.until(
+        EC.visibility_of_element_located(
+            (By.XPATH, "(//h2[contains(normalize-space(.),'Prominent Recruiters')]/following::img)[3]")
+        )
+    )
+
+    time.sleep(2)
+
+    # Drag the 3rd logo 100px to the left
+    actions.click_and_hold(third_logo).move_by_offset(-100, 0).release().perform()
+    # OR:
+    # actions.drag_and_drop_by_offset(third_logo, -100, 0).perform()
+
+    print("Dragged 3rd logo 100px to the left.")
+    time.sleep(2)
+else:
+    print("Less than 3 logos found")
+
+driver.quit()
+
+---
+SUMMARY: This is an improved version of the drag and drop script that handles
+stale element references by re-fetching the third logo element before performing
+the drag operation. It uses a more specific XPath to locate the third logo directly,
+avoiding potential issues with element references becoming stale after page updates.
+
+================================================================================
+4. ALERT HANDLING - JAVASCRIPT CONFIRM ALERT
+================================================================================
+File: alert.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/javascript_alerts")
+
+confirm_button = driver.find_element(By.XPATH,"//button[text()='Click for JS Confirm']")
+confirm_button.click()
+time.sleep(3)
+
+alert = driver.switch_to.alert
+
+print("Alert text: ", alert.text)
+alert.accept()
+
+result = driver.find_element(By.ID,"result")
+print("Page result after accepting alert: ", result.text)
+time.sleep(3)
+
+
+driver.quit()
+
+---
+SUMMARY: This script demonstrates how to handle JavaScript confirm alerts in
+Selenium. It opens a test page with JavaScript alerts, clicks the confirm button,
+switches to the alert dialog, reads the alert text, accepts it, and then retrieves
+and prints the result message displayed on the page after accepting the alert.
+
+================================================================================
+5. ALERT HANDLING - SIMPLE JAVASCRIPT ALERT
+================================================================================
+File: alertm.py
+
+from selenium import webdriver
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/javascript_alerts")
+
+# Click button to trigger alert
+driver.find_element("xpath", "//button[text()='Click for JS Alert']").click()
+time.sleep(3)
+
+# Switch to alert
+alert = driver.switch_to.alert
+print("Alert text:", alert.text)
+
+# Accept the alert
+alert.accept()
+
+time.sleep(3)
+driver.quit()
+
+---
+SUMMARY: This script demonstrates basic JavaScript alert handling. It navigates
+to a test page, clicks a button that triggers a simple alert, switches to the
+alert dialog, prints the alert message, and then accepts it. This is a simpler
+version compared to the confirm alert handler.
+
+================================================================================
+6. CHECKBOX INTERACTION - BASIC TOGGLE
+================================================================================
+File: check.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("http://the-internet.herokuapp.com/checkboxes")
+
+checkbox1 = driver.find_element(By.XPATH,"//form[@id='checkboxes']/input[1]")
+checkbox2 = driver.find_element(By.XPATH,"//form[@id='checkboxes']/input[2]")
+
+checkbox1.click()
+time.sleep(5)
+checkbox1.click()
+time.sleep(5)
+checkbox2.click()
+time.sleep(5)
+checkbox2.click()
+time.sleep(5)
+
+---
+SUMMARY: This script demonstrates basic checkbox interaction by toggling two
+checkboxes on a test page. It locates both checkboxes using XPath, clicks each
+one twice to toggle their state (checked/unchecked), with sleep intervals to
+observe the changes. This is a simple demonstration of checkbox manipulation.
+
+================================================================================
+7. CHECKBOX INTERACTION - STATE-AWARE TOGGLE
+================================================================================
+File: check1.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("http://the-internet.herokuapp.com/checkboxes")
+
+checkbox1 = driver.find_element(By.XPATH,"//form[@id='checkboxes']/input[1]")
+checkbox2 = driver.find_element(By.XPATH,"//form[@id='checkboxes']/input[2]")
+
+time.sleep(5)
+if not checkbox1.is_selected():
+    checkbox1.click()
+time.sleep(5)
+if checkbox1.is_selected():
+    checkbox1.click()
+# time.sleep(5)
+# checkbox2.click()
+# time.sleep(5)
+# checkbox2.click()
+# time.sleep(5)
+
+---
+SUMMARY: This is an improved checkbox interaction script that checks the state
+of checkboxes before clicking them. It uses the is_selected() method to determine
+if a checkbox is already checked, and only clicks it if needed. This approach
+prevents unnecessary clicks and ensures predictable checkbox states.
+
+================================================================================
+8. DROPDOWN - SINGLE SELECT DROPDOWN
+================================================================================
+File: dropdown.py
+
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/dropdown")
+
+# locate dropdown
+mydropdown = driver.find_element(By.ID, "dropdown")
+dropdown = Select(mydropdown)
+
+# select by visible text
+dropdown.select_by_visible_text("Option 1")
+time.sleep(2)
+print(f"Selected option: {dropdown.first_selected_option.text}")
+
+# select by value
+dropdown.select_by_value("2")
+time.sleep(2)
+print(f"Selected option: {dropdown.first_selected_option.text}")
+
+# select by index (2 → Option 2)
+dropdown.select_by_index(2)
+time.sleep(2)
+print(f"Selected option: {dropdown.first_selected_option.text}")
+
+
+---
+SUMMARY: This script demonstrates three different methods to select options from
+a single-select dropdown using Selenium's Select class. It shows how to select
+by visible text, by value attribute, and by index. After each selection, it prints
+the currently selected option's text to verify the selection was successful.
+
+================================================================================
+9. DROPDOWN - MULTI-SELECT DROPDOWN
+================================================================================
+File: dropdown1.py
+
+#MULTI-SELECT DROPDOWN
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+
+driver = webdriver.Chrome()
+driver.get("http://demoqa.com/select-menu")
+multi_select_element = driver.find_element(By.ID,"cars")
+multi_select = Select(multi_select_element)
+
+multi_select.select_by_visible_text("Volvo")
+multi_select.deselect_by_visible_text("Volvo")
+
+multi_select.select_by_index(1)
+multi_select.select_by_value("audi")
+sleep(6)
+all_selected_opt_list = multi_select.all_selected_options
+for opt in all_selected_opt_list:
+    print(opt.text)
+
+multi_select.deselect_by_index(0)
+multi_select.deselect_by_value("audi")
+multi_select.deselect_all()
+
+---
+SUMMARY: This script demonstrates handling of multi-select dropdowns. It shows
+how to select multiple options using different methods (visible text, index, value),
+how to retrieve all selected options, and how to deselect options individually
+or all at once using deselect_all(). This is useful for forms that allow multiple
+selections from a dropdown menu.
+
+================================================================================
+10. IFRAME HANDLING - SINGLE IFRAME
+================================================================================
+File: frame.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/iframe")
+
+# Switch into iframe
+driver.switch_to.frame("mce_0_ifr")
+print("Switched to iframe")
+
+iframe_body = driver.find_element(By.TAG_NAME, "body")
+iframe_body.send_keys("India")
+
+time.sleep(5)
+
+driver.switch_to.default_content()
+
+main_header = driver.find_element(By.TAG_NAME, "h3")
+print("Main Document Header: ", main_header.text)
+
+time.sleep(5)
+
+driver.quit()
+
+---
+SUMMARY: This script demonstrates how to work with iframes (inline frames) in
+Selenium. It switches into an iframe by its ID, interacts with elements inside
+the iframe (types text into the body), then switches back to the default content
+to interact with elements in the main page. This is essential for handling pages
+with embedded content.
+
+================================================================================
+11. IFRAME HANDLING - NESTED FRAMES
+================================================================================
+File: frame1.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/nested_frames")
+
+driver.switch_to.frame("frame-top") #Switch to top frame (main frame)
+print("Switch to top frame")
+
+driver.switch_to.frame("frame-left") #Switch to left frame within top frame
+print("Switch to left frame")
+
+left_frame = driver.find_element(By.TAG_NAME, "body")
+print("Left Frame Text: ", left_frame.text) #get text from the left frame
+
+driver.switch_to.parent_frame()#Switch back to the top frame
+print("Switched back to top frame")
+
+driver.switch_to.frame("frame-middle") #Switch to middle frame within top frame
+print("Switch to middle frame")
+
+middle_frame = driver.find_element(By.TAG_NAME, "body")
+print("Middle Frame Text: ", middle_frame.text) #get text from the middle frame
+
+driver.switch_to.parent_frame()#Switch back to the top frame
+print("Switched back to top frame")
+
+driver.switch_to.default_content()
+
+driver.switch_to.frame("frame-bottom") #Now switch to bottom frame
+bottom_frame = driver.find_element(By.TAG_NAME, "body")
+print("Bottom Frame Text: ", bottom_frame.text) # Get text from bottom frame
+
+driver.quit()
+
+
+---
+SUMMARY: This script demonstrates handling of nested frames (frames within frames).
+It shows how to navigate through multiple levels of frames using switch_to.frame(),
+how to use parent_frame() to go back one level, and how to use default_content()
+to return to the main document. It accesses and prints text from different frames
+within a nested frame structure.
+
+================================================================================
+12. IFRAME HANDLING - NESTED FRAMES (ENHANCED)
+================================================================================
+File: framem.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://the-internet.herokuapp.com/nested_frames")
+
+# ---- TOP → LEFT ----
+driver.switch_to.frame("frame-top")   # switch to top frame
+print("Switched to top frame")
+
+driver.switch_to.frame("frame-left")  # inside left frame
+print("Switched to left frame")
+left_frame = driver.find_element(By.TAG_NAME, "body")
+print("Left Frame Text:", left_frame.text)
+
+driver.switch_to.parent_frame()       # back to top
+print("Back to top frame")
+
+# ---- TOP → MIDDLE ----
+driver.switch_to.frame("frame-middle")
+print("Switched to middle frame")
+middle_frame = driver.find_element(By.ID, "content")
+print("Middle Frame Text:", middle_frame.text)
+
+driver.switch_to.parent_frame()       # back to top
+print("Back to top frame")
+
+# ---- TOP → RIGHT ----
+driver.switch_to.frame("frame-right")
+print("Switched to right frame")
+right_frame = driver.find_element(By.TAG_NAME, "body")
+print("Right Frame Text:", right_frame.text)
+
+# Back to root (default content)
+driver.switch_to.default_content()
+print("Back to main document")
+
+# ---- BOTTOM ----
+driver.switch_to.frame("frame-bottom")
+print("Switched to bottom frame")
+bottom_frame = driver.find_element(By.TAG_NAME, "body")
+print("Bottom Frame Text:", bottom_frame.text)
+
+time.sleep(5)
+driver.quit()
+
+---
+SUMMARY: This is an enhanced version of nested frame handling that demonstrates
+accessing all frames in a nested structure: left, middle, right (within top frame),
+and bottom frame. It shows a systematic approach to navigating through nested frames,
+using parent_frame() to navigate back, and default_content() to return to the main
+document. It also shows accessing elements by different locators (TAG_NAME and ID).
+
+================================================================================
+13. IMCC RECRUITERS - LOGO DRAGGING AUTOMATION
+================================================================================
+File: imcc_recruiters.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+# Launch Chrome browser
+driver = webdriver.Chrome()
+driver.set_page_load_timeout(20)
+driver.maximize_window()
+
+# Navigate to the website
+driver.get("https://imcc.mespune.in/")
+
+# Initialize WebDriverWait and ActionChains
+wait = WebDriverWait(driver, 15)
+actions = ActionChains(driver)
+
+# Wait until the "Prominent Recruiters" header appears
+header = wait.until(
+    EC.presence_of_element_located(
+        (By.XPATH, "//h2[contains(normalize-space(.),'Prominent Recruiters')]")
+    )
+)
+
+# Count the total number of logo images under this section
+logos = driver.find_elements(
+    By.XPATH, "//h2[contains(normalize-space(.),'Prominent Recruiters')]/following::img"
+)
+logo_count = len(logos)
+print(f"Total logos found: {logo_count}")
+
+if logo_count >= 3:
+    # Locate the third logo
+    third_logo = wait.until(
+        EC.visibility_of_element_located(
+            (By.XPATH, "(//h2[contains(normalize-space(.),'Prominent Recruiters')]/following::img)[3]")
+        )
+    )
+
+    # Pause briefly for stability
+    time.sleep(2)
+
+    # Drag the third logo 100 pixels to the left using ActionChains
+    actions.click_and_hold(third_logo).move_by_offset(-100, 0).release().perform()
+
+    print("Dragged the third logo 100 pixels to the left.")
+    time.sleep(2)
+else:
+    print("Fewer than three logos found. No dragging performed.")
+
+# Close the browser
+driver.quit()
+
+---
+SUMMARY: This script automates interaction with the IMCC website's "Prominent
+Recruiters" section. It uses explicit waits to ensure elements are loaded, counts
+the recruiter logos, and then performs a drag operation on the third logo,
+moving it 100 pixels to the left. This demonstrates real-world automation of
+drag-and-drop interactions on a live website.
+
+================================================================================
+14. BASIC GOOGLE SEARCH - ELEMENT LOCATION AND INTERACTION
+================================================================================
+File: main.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+# 1. Initialize Chrome browser (with parentheses)
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+
+# 3. Print the page title
+print("Page title:", driver.title)
+
+# 4. Maximize window
+driver.maximize_window()
+
+# 5. Find element by ID (example: search box has ID 'APjFqb')
+search_box = driver.find_element(By.ID, "APjFqb")
+print("Search box element:", search_box)
+
+#Using Webelement Locator for XPATH
+search_txtbox = driver.find_element(By.XPATH,"//textarea")
+search_txtbox.send_keys('The Batman')
+#search_txtbox.clear()
+search_txtbox.send_keys(Keys.ENTER)
+
+input("hhh")
+
+---
+SUMMARY: This is a basic Selenium script that demonstrates fundamental browser
+automation. It opens Google, prints the page title, maximizes the window, locates
+the search box using both ID and XPath locators, types a search query, and submits
+it using the ENTER key. This serves as an introductory example for Selenium automation.
+
+================================================================================
+15. GOOGLE SEARCH - WITH CLEAR FUNCTIONALITY
+================================================================================
+File: main1.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+# 1. Initialize Chrome browser (with parentheses)
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+
+# 3. Print the page title
+print("Page title:", driver.title)
+
+# 4. Maximize window
+driver.maximize_window()
+
+# 5. Find element by ID (example: search box has ID 'APjFqb')
+search_box = driver.find_element(By.ID, "APjFqb")
+print("Search box element:", search_box)
+
+#Using Webelement Locator for XPATH
+search_txtbox = driver.find_element(By.XPATH,"//textarea[@name='q']")
+search_txtbox.send_keys('The Batman')
+search_txtbox.clear()
+search_txtbox.send_keys(Keys.ENTER)
+
+input("hhh")
+
+---
+SUMMARY: This script is similar to main.py but demonstrates the clear() method
+for clearing input fields. It types text into the search box, clears it, and
+then types again. This shows how to reset input fields before entering new values,
+which is useful in form automation scenarios.
+
+================================================================================
+16. ELEMENT LOCATION - FIND_ELEMENT VS FIND_ELEMENTS DEMONSTRATION
+================================================================================
+File: main2.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+# 1. Initialize Chrome browser (with parentheses)
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+
+single_search_txtbox = driver.find_element(By.XPATH,"//textarea")
+
+multi_search_txtbox = driver.find_elements(By.XPATH,"//textarea")
+
+# print(type(single_search_txtbox))
+# print(type(multi_search_txtbox))
+
+# Output:
+# DevTools listening on ws://127.0.0.1:51218/devtools/browser/d05b8d81-db8b-4ecb-8230-c0cd86082b19
+# <class 'selenium.webdriver.remote.webelement.WebElement'>
+# <class 'list'>
+
+# print("first: ", single_search_txtbox)
+# print("second: ", multi_search_txtbox)
+
+multi_search_txtbox.send_keys('The Batman')
+multi_search_txtbox.send_keys(Keys.ENTER)
+
+input("Enter something to end program: ")
+
+# Output:
+# py main2.py
+#
+# DevTools listening on ws://127.0.0.1:60471/devtools/browser/a5d4f296-8352-4593-bcbc-c6efdd072ca3
+# Traceback (most recent call last):
+#   File "D:\Selenium\main2.py", line 26, in <module>
+#     multi_search_txtbox.send_keys('The Batman')
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AttributeError: 'list' object has no attribute 'send_keys'
+
+---
+SUMMARY: This script demonstrates the difference between find_element() and
+find_elements() methods. find_element() returns a single WebElement object, while
+find_elements() returns a list of WebElement objects. The script intentionally
+shows an error that occurs when trying to call methods directly on a list instead
+of on individual elements, serving as an educational example of a common mistake.
+
+================================================================================
+17. ELEMENT LOCATION - CORRECTED FIND_ELEMENTS USAGE
+================================================================================
+File: main2c.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+# 1. Initialize Chrome browser
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+
+# Find single and multiple textareas
+single_search_txtbox = driver.find_element(By.XPATH, "//textarea")
+multi_search_txtbox = driver.find_elements(By.XPATH, "//textarea")
+
+# Use the first element from the list
+search_box = multi_search_txtbox[0]
+
+# Type search text and press Enter
+search_box.send_keys("The Batman")
+search_box.send_keys(Keys.ENTER)
+
+input("Enter something to end program: ")
+
+---
+SUMMARY: This is the corrected version of main2.py that properly handles the
+list returned by find_elements(). It accesses the first element from the list
+using index [0] before calling methods on it. This demonstrates the correct way
+to work with multiple elements when you need to interact with a specific one.
+
+================================================================================
+18. WINDOW MANAGEMENT - CLOSE VS QUIT DIFFERENCE
+================================================================================
+File: main3.py
+
+# difference between close() and quit()
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+# 1. Initialize Chrome browser (with parentheses)
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+
+driver.switch_to.new_window("window")
+driver.get("https://www.facebook.com")
+
+driver.switch_to.new_window("tab")
+driver.get("http://www.youtube.com")
+time.sleep(10)
+
+#driver.close()#will close current browser window
+driver.quit() #will close all window
+
+---
+SUMMARY: This script demonstrates the difference between close() and quit()
+methods, and also shows how to open new windows and tabs. close() closes only
+the current browser window, while quit() closes all windows and ends the WebDriver
+session. The script opens multiple windows/tabs to illustrate this difference.
+
+================================================================================
+19. BROWSER NAVIGATION - BACK, FORWARD, REFRESH
+================================================================================
+File: mainnav.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+# 1. Initialize Chrome browser (with parentheses)
+driver = webdriver.Chrome()
+
+# 2. Open Google
+driver.get("https://www.google.com/")
+driver.get("https://monkeytype.com/")
+driver.maximize_window()
+
+driver.refresh()
+input("Enter to Backward")
+driver.back()
+input("Enter to go foward")
+driver.forward()
+
+#Using Webelement Locator for XPATH
+search_txtbox = driver.find_element(By.XPATH,"//textarea[@name='q']")
+search_txtbox.send_keys('The Batman')
+search_txtbox.send_keys(Keys.ENTER)
+
+search_txtbox.send_keys('m')
+
+input("hhh")
+
+---
+SUMMARY: This script demonstrates browser navigation methods: refresh() to reload
+the current page, back() to go to the previous page in browser history, and
+forward() to go to the next page. It also shows navigating between multiple pages
+and then interacting with elements after navigation.
+
+================================================================================
+20. PAGE PROPERTIES - URL, TITLE, PAGE SOURCE
+================================================================================
+File: mainnav2.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+driver = webdriver.Chrome()
+
+driver.get("https://monkeytype.com/")
+driver.maximize_window()
+
+current_url = driver.current_url
+print("Current page URL: ", current_url)
+
+current_title = driver.title
+print("Current page Title: ", current_title)
+
+current_page_source = driver.page_source
+print("Current Page Source: ", current_page_source)
+
+---
+SUMMARY: This script demonstrates how to retrieve page properties using Selenium:
+current_url to get the current page URL, title to get the page title, and
+page_source to get the complete HTML source of the page. These properties are
+useful for validation and debugging in test automation.
+
+================================================================================
+21. MISCELLANEOUS - SCREENSHOTS AND WINDOW MANAGEMENT
+================================================================================
+File: miscellaneous.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://www.google.com/")
+
+driver.save_screenshot('arnav.png') #Takes a full page screenshot and saves in root
+
+google_logo = driver.find_element(By.XPATH,"//div[@class='k1zIA rSk4se']//*[name()='svg']")
+google_logo.screenshot("img_logo.png")
+
+driver.maximize_window()  # Maximizes the current window
+time.sleep(3)
+
+driver.minimize_window()  # Minimizes the current window
+time.sleep(3)
+
+driver.fullscreen_window()  # Sets the current window to fullscreen
+time.sleep(3)
+
+# Get current window position
+window_position = driver.get_window_position()
+print("Window Position: ", window_position)
+
+# Set window position
+driver.set_window_position(200, 100)
+time.sleep(3)
+
+# Get current window size
+window_size = driver.get_window_size()
+print("Window Size: ", window_size)
+
+# Set window size
+driver.set_window_size(1024, 768)
+time.sleep(3)
+
+driver.quit()
+
+---
+SUMMARY: This script demonstrates various window management and screenshot
+functionalities. It shows how to take full page screenshots and element-specific
+screenshots, how to maximize, minimize, and set fullscreen mode, and how to get
+and set window position and size. These are useful utilities for test automation
+and debugging.
+
+================================================================================
+22. FACEBOOK SIGNUP AUTOMATION - FORM FILLING
+================================================================================
+File: practice.py
+
+"""
+This script automates the process of opening Facebook, 
+clicking the 'Create new account' button, and filling out 
+the sign-up form using Selenium WebDriver in Python.
+
+Steps performed:
+1. Launches Chrome browser and navigates to Facebook.
+2. Waits until the 'Create new account' button is clickable and clicks it.
+3. Fills out the registration form fields:
+   - First name
+   - Surname
+   - Mobile number or email
+   - Password
+   - Date of birth (day, month, year)
+   - Gender (Male in this example)
+4. Submits the form by clicking the 'Sign Up' button.
+5. Waits for 10 seconds before closing the browser.
+
+Note:
+- Dummy data is used for demonstration purposes.
+- Some fields (like 'Re-enter email') may appear dynamically 
+  and should be handled with explicit waits if needed.
+- This script is for practice/learning only; 
+  Facebook may block automated sign-ups using real information.
+"""
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+driver = webdriver.Chrome()
+driver.get("https://www.fb.com/")
+driver.maximize_window()
+
+wait = WebDriverWait(driver, 15)
+
+# Step 1: Click "Create new account"
+create_new_account = wait.until(
+    EC.element_to_be_clickable((By.XPATH, '//a[@data-testid="open-registration-form-button"]'))
+)
+create_new_account.click()
+
+# Step 2: Fill form fields
+first_name = wait.until(EC.presence_of_element_located((By.NAME, "firstname")))
+first_name.send_keys("Arnav")
+
+last_name = driver.find_element(By.NAME, "lastname")
+last_name.send_keys("Chandure")
+
+email = driver.find_element(By.NAME, "reg_email__")
+email.send_keys("arnav123@example.com")
+
+password = driver.find_element(By.NAME, "reg_passwd__")
+password.send_keys("StrongPassword123")
+
+# Step 3: Select date of birth
+Select(driver.find_element(By.NAME, "birthday_day")).select_by_visible_text("16")
+Select(driver.find_element(By.NAME, "birthday_month")).select_by_visible_text("Sep")
+Select(driver.find_element(By.NAME, "birthday_year")).select_by_visible_text("2000")
+
+# Step 4: Select gender (Male)
+gender = driver.find_element(By.XPATH, '//input[@name="sex" and @value="2"]')
+gender.click()
+
+# Step 5: Click Sign Up
+signup_btn = driver.find_element(By.NAME, "websubmit")
+signup_btn.click()
+
+time.sleep(10)
+driver.quit()
+
+---
+SUMMARY: This is a comprehensive form automation script that demonstrates
+automating a complete signup process on Facebook. It uses explicit waits to handle
+dynamic elements, fills multiple form fields including text inputs and dropdowns,
+selects radio buttons, and submits the form. This serves as a real-world example
+of end-to-end form automation with proper wait strategies.
+
+================================================================================
+23. RADIO BUTTON HANDLING - FACEBOOK ACCOUNT CREATION
+================================================================================
+File: radio.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+# 1. Initialize Chrome browser
+driver = webdriver.Chrome()
+
+# 2. Open Facebook
+driver.get("https://www.fb.com/")
+
+# 3. Wait until "Create new account" button is clickable
+wait = WebDriverWait(driver, 15)
+create_new_account = wait.until(
+    EC.element_to_be_clickable((By.XPATH, '//a[@data-testid="open-registration-form-button"]'))
+)
+
+time.sleep(5)
+
+# 4. Click the button
+create_new_account.click()
+
+time.sleep(10)  # Just to keep the window open so you can see the result
+driver.quit()
+
+---
+SUMMARY: This script demonstrates clicking a button that opens a registration form,
+which typically contains radio buttons for gender selection. While the script
+itself only opens the form, it sets up the context for radio button interaction.
+The script uses explicit waits to ensure the button is clickable before interacting
+with it, which is a best practice in Selenium automation.
+
+================================================================================
+24. ELEMENT ATTRIBUTES - GETTING ELEMENT PROPERTIES
+================================================================================
+File: value.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+driver = webdriver.Chrome()
+driver.get("https://www.google.com")
+search_box = driver.find_element(By.NAME,"q")
+
+print("maxlenght: ", search_box.get_attribute("maxlength"))
+print("id: ", search_box.get_attribute("id"))
+
+print("value(before typing): "), search_box.get_attribute("value")
+search_box.send_keys("IMCC")
+print("value(after typing): ", search_box.get_attribute("value"))
+
+driver.quit()
+
+---
+SUMMARY: This script demonstrates how to retrieve element attributes using the
+get_attribute() method. It shows getting static attributes like "maxlength" and
+"id", as well as dynamic attributes like "value" which changes when text is entered.
+This is useful for validation and verification in test automation to ensure elements
+have expected properties and values.
+
+================================================================================
+25. WAIT STRATEGIES - IMPLICIT, EXPLICIT, AND FLUENT WAITS
+================================================================================
+File: wait.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+driver = webdriver.Chrome()
+driver.get("http://www.google.com")
+
+# Implicit Wait
+driver.implicitly_wait(10)
+search_box = driver.find_element(By.NAME,"q")
+search_box.send_keys("Pune")
+
+# Explicit Wait
+wait = WebDriverWait(driver, 15)
+search_box_explicit = wait.until(
+    EC.presence_of_element_located((By.NAME, "q"))
+)
+search_box_explicit.send_keys(" Maharashtra")
+
+# Fluent Wait
+polling_wait = WebDriverWait(driver, 20, poll_frequency=3, ignored_exceptions=[Exception])
+search_box_polling = polling_wait.until(
+    EC.visibility_of_element_located((By.NAME,"q"))
+)
+search_box_polling.send_keys(" India")
+
+
+
+driver.quit()
+
+---
+SUMMARY: This script demonstrates three different wait strategies in Selenium:
+implicit wait (applies to all find operations), explicit wait (waits for specific
+conditions), and fluent wait (explicit wait with configurable polling frequency
+and exception handling). Each wait type has different use cases and this script
+shows how to implement them, which is crucial for handling dynamic web pages.
+
+================================================================================
+26. WINDOW SWITCHING - MULTIPLE WINDOWS AND TABS
+================================================================================
+File: window.py
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+driver = webdriver.Chrome()
+driver.get("https://www.facebook.com")
+wait = WebDriverWait(driver,10)
+
+original_window = driver.current_window_handle
+
+driver.switch_to.new_window('window')
+wait.until(EC.number_of_windows_to_be(2))
+
+driver.execute_script("window.open('https://www.google.com/')")
+wait.until(EC.number_of_windows_to_be(3))
+
+all_windows = driver.window_handles
+for window in all_windows:
+    if window != original_window:
+        driver.switch_to.window(window)
+        break
+
+driver.quit()
+
+#Homework: Try with two different drivers
+
+---
+SUMMARY: This script demonstrates window and tab management in Selenium. It shows
+how to open new windows and tabs, how to get the current window handle, how to
+wait for a specific number of windows, how to get all window handles, and how to
+switch between windows. This is essential for testing applications that open
+multiple windows or tabs.
+
+================================================================================
+27. WINDOW SWITCHING - ENHANCED WITH DEBUGGING
+================================================================================
+File: windowc.py
+
+import time
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# Launch Chrome
+driver = webdriver.Chrome()
+wait = WebDriverWait(driver, 10)
+
+# Open Facebook in the first window
+driver.get("https://www.facebook.com")
+print("Opened Facebook")
+time.sleep(3)
+
+# Store the original window handle
+original_window = driver.current_window_handle
+print(">>> Original window handle:", original_window, type(original_window))
+
+# Open a new browser window
+driver.switch_to.new_window('window')
+wait.until(EC.number_of_windows_to_be(2))
+print("Opened a new blank window")
+time.sleep(3)
+
+# Open Google in a new tab using JavaScript
+driver.execute_script("window.open('https://www.google.com/')")
+wait.until(EC.number_of_windows_to_be(3))
+print("Opened Google in a new tab")
+time.sleep(3)
+
+# Get all window handles
+all_windows = driver.window_handles
+print(">>> All window handles:", all_windows, type(all_windows))
+
+# Switch to the first non-original window
+for window in all_windows:
+    if window != original_window:
+        driver.switch_to.window(window)
+        print("Switched to window/tab:", driver.title)
+        time.sleep(3)
+        break
+
+# Keep everything open for a bit
+print("Pausing for you to observe the windows...")
+time.sleep(10)
+
+# Close all windows and quit session
+driver.quit()
+print("Closed all windows and ended session")
+
+---
+SUMMARY: This is an enhanced version of window switching with added debugging
+output and better structure. It demonstrates the same window management concepts
+as window.py but includes print statements to help understand what's happening
+at each step, shows the types of window handles, and displays the title of the
+switched window. This makes it easier to learn and debug window switching logic.
+
+================================================================================
+                              END OF DOCUMENTATION
+================================================================================
+
+Total Files Documented: 27 Python Files
+
+This documentation provides a comprehensive overview of all Selenium automation
+scripts in the folder, covering various topics including:
+- ActionChains (hover, drag and drop)
+- Alert handling
+- Checkbox interactions
+- Dropdown selections (single and multi-select)
+- Iframe and nested frame handling
+- Form automation
+- Element location strategies
+- Browser navigation
+- Window and tab management
+- Wait strategies
+- Screenshots and window controls
+- Element attribute retrieval
+
+Each script serves as a learning example for different Selenium WebDriver concepts
+and automation techniques.
+
+================================================================================
+
